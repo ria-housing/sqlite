@@ -67,7 +67,7 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     def version_room = "2.5.0"
     //Room
-    implementation "androidx.room:room-runtime:$version_room"
-    kapt "androidx.room:room-compiler:$version_room"
-    implementation "androidx.room:room-ktx:$version_room"
+    implementation "androidx.room:room-runtime:2.5.2"
+    kapt "androidx.room:room-compiler:2.5.2"
+    implementation "androidx.room:room-ktx:2.5.2"
 }

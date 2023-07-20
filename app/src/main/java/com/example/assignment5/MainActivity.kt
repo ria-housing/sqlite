@@ -18,7 +18,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,16 +28,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import com.example.assignment5.db.UsersDatabase
+import com.example.assignment5.factory.UserViewModelFactory
+import com.example.assignment5.model.Users
+import com.example.assignment5.repository.Repository
 import com.example.assignment5.ui.theme.Assignment5Theme
-import kotlinx.coroutines.Dispatchers
+import com.example.assignment5.vm.UserViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
+    private var viewModel: UserViewModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val db = UsersDatabase.getInstance(applicationContext)
+            val rep = Repository(db)
+            val factory = UserViewModelFactory(rep)
+            viewModel = ViewModelProvider(this,factory)[UserViewModel::class.java]
             Assignment5Theme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -46,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 //                    Greeting("Android")
-                    MainScreen(applicationContext)
+                    MainScreen(applicationContext, viewModel!!)
                 }
             }
         }
@@ -56,7 +63,7 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(applicationContext: Context) {
+fun MainScreen(applicationContext: Context, viewModel: UserViewModel) {
     val db = UsersDatabase.getInstance(applicationContext).UsersDao()
     var mobile by remember {
         mutableStateOf("")
@@ -113,9 +120,10 @@ fun MainScreen(applicationContext: Context) {
             placeholder = { Text(text = "Password") },
         )
         if (savebool) {
-            scope.launch {
+
                 try {
-                    db.insert(Users(MobileNo = mobile, Password = password))
+//                    db.insert(Users(MobileNo = mobile, Password = password))
+                    viewModel.insert(Users(MobileNo = mobile, Password = password))
 
                 } catch (ex: Exception) {
                     println("cancelled")
@@ -123,7 +131,6 @@ fun MainScreen(applicationContext: Context) {
                 mobile = ""
                 password = ""
                 savebool = !savebool
-            }
 
         }
         Button(onClick = {
@@ -141,18 +148,10 @@ fun MainScreen(applicationContext: Context) {
             placeholder = { Text(text = "Query mobile") },
         )
         if (getpassbool) {
-            val showcustomrows by remember {
-                derivedStateOf {
-                    runBlocking {
-                        withContext(Dispatchers.IO) {
-                            db.getCustomUser(qmob)
-                        }
-                    }
-                }
+            val showcustomerows by remember {
+                mutableStateOf(viewModel.getCustomUser(qmob))
             }
-            showcustomrows.forEach {
-                Text("${it.MobileNo} - ${it.Password}")
-            }
+            Text(text = "$showcustomerows")
         }
         Button(onClick = {
             getpassbool = !getpassbool
@@ -185,8 +184,8 @@ fun MainScreen(applicationContext: Context) {
         if (updpassbool) {
             scope.launch {
                 try {
-                    val id = db.getId(updmob)
-                    db.update(Users(id, MobileNo = updmob, Password = updpass))
+//                    val id = db.getId(updmob)
+//                    db.update(Users(id, MobileNo = updmob, Password = updpass))
                 } catch (ex: Exception) {
                     println("cancelled")
                 }
@@ -209,8 +208,8 @@ fun MainScreen(applicationContext: Context) {
             if (delrowbool) {
                 scope.launch {
                     try {
-                        val id = db.getId(delmob)
-                        db.delete(Users(id, MobileNo = delmob, Password = ""))
+//                        val id = db.getId(delmob)
+//                        db.delete(Users(id, MobileNo = delmob, Password = ""))
                         Toast.makeText(mContext, "deleted", Toast.LENGTH_SHORT).show()
                     } catch (ex: Exception) {
                         println("cancelled")
@@ -230,7 +229,7 @@ fun MainScreen(applicationContext: Context) {
         if (delbool) {
             scope.launch {
                 try {
-                    db.deleteAll()
+//                    db.deleteAll()
                     Toast.makeText(mContext, "deleted", Toast.LENGTH_SHORT).show()
                 } catch (ex: Exception) {
                     println("cancelled")

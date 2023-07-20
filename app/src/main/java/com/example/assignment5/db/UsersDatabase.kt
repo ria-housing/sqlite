@@ -1,9 +1,10 @@
-package com.example.assignment5
+package com.example.assignment5.db
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.assignment5.model.Users
 
 
 @Database(entities = [Users::class], version = 1)
@@ -18,7 +19,7 @@ abstract class UsersDatabase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         UsersDatabase::class.java,
-                        "program.db"
+                        "programtest.db"
                     ).fallbackToDestructiveMigration()
                         .build()
                     INSTANCE = instance
